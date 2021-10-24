@@ -121,17 +121,17 @@ sonar/
 # Dependency directories (remove the comment below to include it)
 vendor/
 src/github.com/
+src/gopkg.in/
+src/golang.org/
+src/code.google.com/
+src/go.etcd.io/
+src/go.uber.org/
 
-src/gopkg.in
-src/github.com
-src/golang.org
-/src/gopkg.in
-/src/github.com
-/src/github.com/
-/src/golang.org/
-/.idea/
-/pkg
 pkg/
 bin/
-/bin/
-minify/
+/config/secret/
+/config/secretConfig.go
+.DS_store
+
+.env.*
+.env*
