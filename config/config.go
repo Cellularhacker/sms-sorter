@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-	"strings"
 )
 
 const (
@@ -14,17 +13,19 @@ const (
 )
 
 var SqlURL = ""
-var TokyoMongoURL = ""
-var TokyoMongoAddr []string
-var TokyoMongoUsername = ""
-var TokyoMongoAuthDB = ""
-var TokyoMongoPass = ""
+var MongoURL = ""
 var EncryptionSecret = ""
 var PushoverSecret = ""
 var PushoverDeviceID = ""
 
 var MqttURL = ""
 var MqttClientID = ""
+
+var DefaultTel = ""
+var DefaultFWTel = ""
+
+var TelegramAccessToken = ""
+var TelegramChatID = ""
 
 var Mode = ModeDevelopment
 
@@ -50,11 +51,7 @@ func init() {
 		SqlURL = os.Getenv("SMS_MYSQL_URL_IP")
 	}
 
-	TokyoMongoURL = os.Getenv("SMS_MONGO_URL")
-	TokyoMongoAddr = strings.Split(os.Getenv("SMS_MONGO_ADDR"), ",")
-	TokyoMongoUsername = os.Getenv("SMS_MONGO_USERNAME")
-	TokyoMongoPass = os.Getenv("SMS_MONGO_PASS")
-	TokyoMongoAuthDB = os.Getenv("SMS_MONGO_AUTH_DB")
+	MongoURL = os.Getenv("SMS_MONGO_URL")
 	SqlURL = os.Getenv("SMS_MYSQL_URL")
 
 	PushoverSecret = os.Getenv("SMS_PUSHOVER_SECRET")

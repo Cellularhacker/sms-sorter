@@ -1,5 +1,5 @@
 package data
 
 func Init() {
-	InitTokyoMongo()
+	InitMongo()
 }

@@ -1,16 +1,23 @@
 package finefssCategory
 
 import (
+	"context"
 	"crypto/sha512"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/mervick/aes-everywhere/go/aes256"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"sms-sorter/config"
+	"time"
 )
 
-var store Store
+var c *mongo.Collection
 
 const (
+	CName = "finefssCategory"
+
 	KeyID        = "_id"
 	KeyKey       = "key"
 	KeyValue     = "value"
@@ -18,41 +25,79 @@ const (
 	KeyCreatedAt = "created_at"
 )
 
-type Store interface {
-	Create(a *FineFssCategory) error
-	GetBy(bson.M) ([]FineFssCategory, error)
-	GetByDesc(bson.M) ([]FineFssCategory, error)
-	GetBySortLimit(query bson.M, sort string, limit int) ([]FineFssCategory, error)
-	UpdateSet(what, set bson.M) error
-	Delete(what bson.M, all bool) error
-	CountBy(bson.M) (int, error)
-	GetBySortLimitSkip(query bson.M, sort string, limit, skip int) ([]FineFssCategory, error)
+func SetCollection(db *mongo.Database) {
+	c = db.Collection(CName)
 }
 
-func SetStore(s Store) {
-	store = s
+func Create(ffc *FineFssCategory) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	if ffc.ID.IsZero() {
+		ffc.ID = primitive.NewObjectID()
+	}
+	ffc.CreatedAt = time.Now().Unix()
+
+	_, err := c.InsertOne(ctx, *ffc)
+	return err
 }
 
-func GetOneBy(by bson.M) (*FineFssCategory, error) {
-	ts, err := store.GetBy(by)
+func GetOneBy(by bson.M, opt ...*options.FindOneOptions) (*FineFssCategory, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	sr := c.FindOne(ctx, by, opt...)
+	if sr.Err() != nil {
+		return nil, sr.Err()
+	}
+
+	ffc := New()
+	if err := sr.Decode(ffc); err != nil {
+		return nil, fmt.Errorf("sr.Decode(ffc): %s", err)
+	}
+
+	return ffc, nil
+}
+
+func GetBy(by bson.M, opt ...*options.FindOptions) ([]FineFssCategory, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	ffcs := make([]FineFssCategory, 0)
+	cur, err := c.Find(ctx, by, opt...)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return ffcs, nil
+		}
 		return nil, err
 	}
-	if len(ts) > 0 {
-		return &ts[0], nil
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		ffc := New()
+		if err1 := cur.Decode(ffc); err1 != nil {
+			continue
+		}
+
+		ffcs = append(ffcs, *ffc)
 	}
-	return nil, nil
+
+	return ffcs, nil
 }
 
-func GetByID(id bson.ObjectId) (*FineFssCategory, error) {
-	as, err := store.GetByDesc(bson.M{KeyID: id})
-	if err != nil {
-		return nil, err
-	}
-	if len(as) > 0 {
-		return &as[0], nil
-	}
-	return nil, nil
+func CountBy(by bson.M) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	return c.CountDocuments(ctx, by)
+}
+
+func GetByID(id primitive.ObjectID) (*FineFssCategory, error) {
+	return GetOneBy(bson.M{KeyID: id})
 }
 
 func GetByKey(key string) (*FineFssCategory, error) {
@@ -60,10 +105,6 @@ func GetByKey(key string) (*FineFssCategory, error) {
 }
 func GetByValue(value string) (*FineFssCategory, error) {
 	return GetOneBy(bson.M{KeyValue: value})
-}
-
-func DeleteBy(by bson.M) error {
-	return store.Delete(by, true)
 }
 
 func GetEncrypted(privateKey string) string {

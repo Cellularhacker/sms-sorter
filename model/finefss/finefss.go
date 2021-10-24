@@ -1,12 +1,12 @@
 package finefss
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FineFss struct {
-	ID         bson.ObjectId `bson:"_id" json:"_id"`
-	CategoryID bson.ObjectId `bson:"category_id" json:"category_id"`
+	ID         primitive.ObjectID `bson:"_id" json:"_id"`
+	CategoryID primitive.ObjectID `bson:"category_id" json:"category_id"`
 
 	SequenceNo int `bson:"sequence_no" json:"sequence_no"`
 
@@ -28,7 +28,7 @@ type FineFss struct {
 }
 
 func New() *FineFss {
-	return &FineFss{ID: bson.NewObjectId()}
+	return &FineFss{}
 }
 
 func (c *FineFss) Upsert() error {
@@ -39,7 +39,7 @@ func (c *FineFss) Upsert() error {
 
 	// Create a new.
 	if ps == nil {
-		return store.Create(c)
+		return Create(c)
 	}
 
 	// Check Update

@@ -1,14 +1,16 @@
 package thecall
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TheCall struct {
-	ID          bson.ObjectId `bson:"_id" json:"_id"`
-	PhoneNumber string        `bson:"phone_number" json:"phone_number"`
-	Subject     string        `bson:"subject" json:"subject"`
-	IsWhiteList bool          `bson:"is_white_list" json:"is_white_list"`
+	ID          primitive.ObjectID `bson:"_id" json:"_id"`
+	PhoneNumber string             `bson:"phone_number" json:"phone_number"`
+	Subject     string             `bson:"subject" json:"subject"`
+	IsWhiteList bool               `bson:"is_white_list" json:"is_white_list"`
 	//AddedMember string        `bson:"added_member" json:"added_member"`
 	//View        int           `bson:"view" json:"view"`
 	//AddedAt     int64         `bson:"added_at"`
@@ -27,7 +29,7 @@ type TheCall struct {
 //}
 
 func New() *TheCall {
-	return &TheCall{ID: bson.NewObjectId()}
+	return &TheCall{}
 }
 
 func (c *TheCall) Upsert() error {
@@ -38,12 +40,12 @@ func (c *TheCall) Upsert() error {
 
 	// Create a new.
 	if ps == nil {
-		return store.Create(c)
+		return Create(c)
 	}
 
 	// Check Update
 	if ps.Subject != c.Subject && ps.IsWhiteList == c.IsWhiteList {
-		return store.UpdateSet(bson.M{KeyID: ps.ID}, bson.M{KeySubject: c.Subject})
+		return UpdateSet(bson.M{KeyID: ps.ID}, bson.M{KeySubject: c.Subject}, options.Update().SetUpsert(true))
 	}
 
 	// Nothing to update.

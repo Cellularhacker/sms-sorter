@@ -1,16 +1,23 @@
 package finefss
 
 import (
+	"context"
 	"crypto/sha512"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/mervick/aes-everywhere/go/aes256"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"sms-sorter/config"
+	"time"
 )
 
-var store Store
+var c *mongo.Collection
 
 const (
+	CName = "finefss"
+
 	KeyID          = "_id"
 	KeyPhoneNumber = "phone_number"
 	KeySubject     = "subject"
@@ -20,49 +27,82 @@ const (
 	KeyAskCount    = "ask_count"
 )
 
-type Store interface {
-	Create(a *FineFss) error
-	GetBy(bson.M) ([]FineFss, error)
-	GetByDesc(bson.M) ([]FineFss, error)
-	GetBySortLimit(query bson.M, sort string, limit int) ([]FineFss, error)
-	UpdateSet(what, set bson.M) error
-	Delete(what bson.M, all bool) error
-	CountBy(bson.M) (int, error)
-	GetBySortLimitSkip(query bson.M, sort string, limit, skip int) ([]FineFss, error)
+func SetCollection(db *mongo.Database) {
+	c = db.Collection(CName)
 }
 
-func SetStore(s Store) {
-	store = s
+func Create(ff *FineFss) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	if ff.ID.IsZero() {
+		ff.ID = primitive.NewObjectID()
+	}
+	if ff.CategoryID.IsZero() {
+		return fmt.Errorf("invalid 'category_id'")
+	}
+	ff.CreatedAt = time.Now().Unix()
+
+	_, err := c.InsertOne(ctx, *ff)
+	return err
 }
 
-func GetOneBy(by bson.M) (*FineFss, error) {
-	ts, err := store.GetBy(by)
+func GetOneBy(by bson.M, opt ...*options.FindOneOptions) (*FineFss, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	sr := c.FindOne(ctx, by, opt...)
+	if sr.Err() != nil {
+		return nil, sr.Err()
+	}
+
+	ff := New()
+	if err := sr.Decode(ff); err != nil {
+		return nil, fmt.Errorf("sr.Decode(ff): %s", err)
+	}
+
+	return ff, nil
+}
+
+func GetBy(by bson.M, opt ...*options.FindOptions) ([]FineFss, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	ffs := make([]FineFss, 0)
+	cur, err := c.Find(ctx, by, opt...)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return ffs, nil
+		}
 		return nil, err
 	}
-	if len(ts) > 0 {
-		return &ts[0], nil
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		ff := New()
+		if err1 := cur.Decode(ff); err1 != nil {
+			continue
+		}
+
+		ffs = append(ffs, *ff)
 	}
-	return nil, nil
+
+	return ffs, nil
 }
 
-func GetByID(id bson.ObjectId) (*FineFss, error) {
-	as, err := store.GetByDesc(bson.M{KeyID: id})
-	if err != nil {
-		return nil, err
-	}
-	if len(as) > 0 {
-		return &as[0], nil
-	}
-	return nil, nil
+func CountBy(by bson.M) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	return c.CountDocuments(ctx, by)
 }
 
 func GetByPhoneNumber(phoneNumber string) (*FineFss, error) {
 	return GetOneBy(bson.M{KeyPhoneNumber: phoneNumber})
-}
-
-func DeleteBy(by bson.M) error {
-	return store.Delete(by, true)
 }
 
 func GetEncrypted(privateKey string) string {
@@ -83,13 +123,13 @@ func GetSHA512(content string) string {
 }
 
 func IsSpam(phoneNumber string) bool {
-	cnt, _ := store.CountBy(bson.M{KeyPhoneNumber: phoneNumber, KeyIsWhiteList: false})
+	cnt, _ := CountBy(bson.M{KeyPhoneNumber: phoneNumber, KeyIsWhiteList: false})
 
 	return cnt > 0
 }
 
 func IsExist(phoneNumber string) bool {
-	cnt, _ := store.CountBy(bson.M{KeyPhoneNumber: phoneNumber})
+	cnt, _ := CountBy(bson.M{KeyPhoneNumber: phoneNumber})
 
 	return cnt > 0
 }

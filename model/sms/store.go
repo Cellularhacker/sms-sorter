@@ -1,20 +1,26 @@
 package sms
 
 import (
+	"context"
 	"crypto/sha512"
 	"encoding/json"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/mervick/aes-everywhere/go/aes256"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"strings"
 	"time"
 
 	"sms-sorter/config"
 )
 
-var store Store
+var c *mongo.Collection
 
 const (
+	CName = "sms"
+
 	KeyID          = "_id"
 	KeyFromNumber  = "from_number"
 	KeyContactName = "contact_name"
@@ -26,9 +32,6 @@ const (
 	KeyMessageHash = "message_hash"
 	KeyCreatedAt   = "created_at"
 
-	DefaultTel   = "010-3254-6909"
-	DefaultFWTel = "010-6514-6909"
-
 	TextTypeNotSorted        = 0
 	TextTypeSMS              = 201
 	TextTypeLMS              = 202
@@ -37,34 +40,79 @@ const (
 	TextTypeSpamCommonNumber = 601
 )
 
-type Store interface {
-	Create(a *Sms) error
-	GetBy(bson.M) ([]Sms, error)
-	GetByDesc(bson.M) ([]Sms, error)
-	GetBySortLimit(query bson.M, sort string, limit int) ([]Sms, error)
-	UpdateSet(what, set bson.M) error
-	Delete(what bson.M, all bool) error
-	CountBy(bson.M) (int, error)
-	GetBySortLimitSkip(query bson.M, sort string, limit, skip int) ([]Sms, error)
+func SetCollection(db *mongo.Database) {
+	c = db.Collection(CName)
 }
 
-func SetStore(s Store) {
-	store = s
+func Create(s *Sms) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	if s.ID.IsZero() {
+		s.ID = primitive.NewObjectID()
+	}
+	s.CreatedAt = time.Now().Unix()
+
+	_, err := c.InsertOne(ctx, *s)
+	return err
 }
 
-func GetByID(id bson.ObjectId) (*Sms, error) {
-	as, err := store.GetByDesc(bson.M{KeyID: id})
+func GetOneBy(by bson.M, opt ...*options.FindOneOptions) (*Sms, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	sr := c.FindOne(ctx, by, opt...)
+	if sr.Err() != nil {
+		return nil, sr.Err()
+	}
+
+	s := New()
+	if err := sr.Decode(s); err != nil {
+		return nil, fmt.Errorf("sr.Decode(s): %s", err)
+	}
+
+	return s, nil
+}
+
+func GetBy(by bson.M, opt ...*options.FindOptions) ([]Sms, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	ss := make([]Sms, 0)
+	cur, err := c.Find(ctx, by, opt...)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return ss, nil
+		}
 		return nil, err
 	}
-	if len(as) > 0 {
-		return &as[0], nil
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		s := New()
+		if err1 := cur.Decode(s); err1 != nil {
+			continue
+		}
+
+		ss = append(ss, *s)
 	}
-	return nil, nil
+
+	return ss, nil
 }
 
-func DeleteBy(by bson.M) error {
-	return store.Delete(by, true)
+func CountBy(by bson.M) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	return c.CountDocuments(ctx, by)
+}
+
+func GetByID(id primitive.ObjectID) (*Sms, error) {
+	return GetOneBy(bson.M{KeyID: id})
 }
 
 func GetEncrypted(privateKey string) string {
@@ -85,9 +133,9 @@ func GetSHA512(content string) string {
 }
 
 func IsExistHash(hash string) bool {
-	s, _ := store.GetBy(bson.M{KeyMessageHash: hash})
+	s, _ := CountBy(bson.M{KeyMessageHash: hash})
 
-	return len(s) > 0
+	return s > 0
 }
 
 /////////////////////////////////////////////////////
