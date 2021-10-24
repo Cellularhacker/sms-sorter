@@ -14,11 +14,12 @@ require (
 )
 
 require (
-	github.com/andybalholm/cascadia v1.2.0 // indirect
+	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/tdewolff/test v1.0.6 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
+	go.mongodb.org/mongo-driver v1.7.3 // indirect
+	golang.org/x/net v0.0.0-20211020060615-d418f374d309 // indirect
 )
