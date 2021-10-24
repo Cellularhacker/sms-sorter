@@ -12,6 +12,7 @@ var store Store
 
 const (
 	KeyID        = "_id"
+	KeyKey       = "key"
 	KeyValue     = "value"
 	KeyText      = "text"
 	KeyCreatedAt = "created_at"

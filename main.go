@@ -7,8 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"sms-sorter/data"
-	"sms-sorter/model/finefss"
-	"sms-sorter/model/finefssCategory"
 	"sms-sorter/model/sms"
 	"sms-sorter/model/thecall"
 	"sms-sorter/service/renewSpamDB"
@@ -34,8 +32,8 @@ func init() {
 	// Set Context
 	sms.SetStore(data.NewSmsStore())
 	thecall.SetStore(data.NewTheCallStore())
-	finefss.SetStore(data.NewFineFssStore())
-	finefssCategory.SetStore(data.NewFineFssCategoryStore())
+	//finefss.SetStore(data.NewFineFssStore())
+	//finefssCategory.SetStore(data.NewFineFssCategoryStore())
 	// Service...
 }
 
