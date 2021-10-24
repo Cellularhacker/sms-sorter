@@ -1,16 +1,23 @@
 package thecall
 
 import (
+	"context"
 	"crypto/sha512"
 	"fmt"
-	"github.com/globalsign/mgo/bson"
 	"github.com/mervick/aes-everywhere/go/aes256"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"sms-sorter/config"
+	"time"
 )
 
-var store Store
+var c *mongo.Collection
 
 const (
+	CName = "thecall"
+
 	KeyID          = "_id"
 	KeyPhoneNumber = "phone_number"
 	KeySubject     = "subject"
@@ -20,49 +27,92 @@ const (
 	KeyAskCount    = "ask_count"
 )
 
-type Store interface {
-	Create(a *TheCall) error
-	GetBy(bson.M) ([]TheCall, error)
-	GetByDesc(bson.M) ([]TheCall, error)
-	GetBySortLimit(query bson.M, sort string, limit int) ([]TheCall, error)
-	UpdateSet(what, set bson.M) error
-	Delete(what bson.M, all bool) error
-	CountBy(bson.M) (int, error)
-	GetBySortLimitSkip(query bson.M, sort string, limit, skip int) ([]TheCall, error)
+func SetCollection(db *mongo.Database) {
+	c = db.Collection(CName)
 }
 
-func SetStore(s Store) {
-	store = s
+func Create(tc *TheCall) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	if tc.ID.IsZero() {
+		tc.ID = primitive.NewObjectID()
+	}
+	tc.CreatedAt = time.Now().Unix()
+
+	_, err := c.InsertOne(ctx, *tc)
+	return err
 }
 
-func GetOneBy(by bson.M) (*TheCall, error) {
-	ts, err := store.GetBy(by)
+func GetOneBy(by bson.M, opt ...*options.FindOneOptions) (*TheCall, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	sr := c.FindOne(ctx, by, opt...)
+	if sr.Err() != nil {
+		return nil, sr.Err()
+	}
+
+	tc := New()
+	if err := sr.Decode(tc); err != nil {
+		return nil, fmt.Errorf("sr.Decode(tc): %s", err)
+	}
+
+	return tc, nil
+}
+
+func GetBy(by bson.M, opt ...*options.FindOptions) ([]TheCall, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	tcs := make([]TheCall, 0)
+	cur, err := c.Find(ctx, by, opt...)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return tcs, nil
+		}
 		return nil, err
 	}
-	if len(ts) > 0 {
-		return &ts[0], nil
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		tc := New()
+		if err1 := cur.Decode(tc); err1 != nil {
+			continue
+		}
+
+		tcs = append(tcs, *tc)
 	}
-	return nil, nil
+
+	return tcs, nil
 }
 
-func GetByID(id bson.ObjectId) (*TheCall, error) {
-	as, err := store.GetByDesc(bson.M{KeyID: id})
-	if err != nil {
-		return nil, err
-	}
-	if len(as) > 0 {
-		return &as[0], nil
-	}
-	return nil, nil
+func UpdateSet(by, set bson.M, opt ...*options.UpdateOptions) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	_, err := c.UpdateOne(ctx, by, bson.M{"$set": set}, opt...)
+	return err
+}
+
+func CountBy(by bson.M) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctx.Done()
+	defer cancel()
+
+	return c.CountDocuments(ctx, by)
+}
+
+func GetByID(id primitive.ObjectID) (*TheCall, error) {
+	return GetOneBy(bson.M{KeyID: id})
 }
 
 func GetByPhoneNumber(phoneNumber string) (*TheCall, error) {
 	return GetOneBy(bson.M{KeyPhoneNumber: phoneNumber})
-}
-
-func DeleteBy(by bson.M) error {
-	return store.Delete(by, true)
 }
 
 func GetEncrypted(privateKey string) string {
@@ -83,13 +133,13 @@ func GetSHA512(content string) string {
 }
 
 func IsSpam(phoneNumber string) bool {
-	cnt, _ := store.CountBy(bson.M{KeyPhoneNumber: phoneNumber, KeyIsWhiteList: false})
+	cnt, _ := CountBy(bson.M{KeyPhoneNumber: phoneNumber, KeyIsWhiteList: false})
 
 	return cnt > 0
 }
 
 func IsExist(phoneNumber string) bool {
-	cnt, _ := store.CountBy(bson.M{KeyPhoneNumber: phoneNumber})
+	cnt, _ := CountBy(bson.M{KeyPhoneNumber: phoneNumber})
 
 	return cnt > 0
 }

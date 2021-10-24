@@ -1,23 +1,23 @@
 package finefssCategory
 
 import (
-	"github.com/globalsign/mgo/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FineFssCategory struct {
-	ID        bson.ObjectId `bson:"_id" json:"_id"`
-	Value     string        `bson:"value" json:"value"`
-	Text      string        `bson:"text" json:"text"`
-	CreatedAt int64         `bson:"created_at" json:"created_at"`
+	ID        primitive.ObjectID `bson:"_id" json:"_id"`
+	Value     string             `bson:"value" json:"value"`
+	Text      string             `bson:"text" json:"text"`
+	CreatedAt int64              `bson:"created_at" json:"created_at"`
 }
 
 func New() *FineFssCategory {
-	return &FineFssCategory{ID: bson.NewObjectId()}
+	return &FineFssCategory{}
 }
 
 func (f *FineFssCategory) Create() error {
 	if f.Text == "" {
 		return nil
 	}
-	return store.Create(f)
+	return Create(f)
 }

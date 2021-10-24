@@ -7,9 +7,10 @@ import (
 	"os"
 	"os/signal"
 	"sms-sorter/data"
+	"sms-sorter/model/finefss"
+	"sms-sorter/model/finefssCategory"
 	"sms-sorter/model/sms"
 	"sms-sorter/model/thecall"
-	"sms-sorter/service/renewSpamDB"
 	"sms-sorter/util"
 	"syscall"
 
@@ -29,20 +30,22 @@ func init() {
 	// Initializing Data...
 	data.Init()
 	//
-	// Set Context
-	sms.SetStore(data.NewSmsStore())
-	thecall.SetStore(data.NewTheCallStore())
+	// Set Collection
+	sms.SetCollection(data.GetSmsDB())
+	thecall.SetCollection(data.GetSmsDB())
+	finefss.SetCollection(data.GetSpamDB())
+	finefssCategory.SetCollection(data.GetSpamDB())
 	//finefss.SetStore(data.NewFineFssStore())
 	//finefssCategory.SetStore(data.NewFineFssCategoryStore())
 	// Service...
 }
 
 func main() {
-	err := renewSpamDB.TheCall()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return
+	//err := renewSpamDB.TheCall()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//return
 	//res := `{"from_number": "01065146909","contact_name": "Cellularhacker@DEXEOS","text": "[Web발신]정확하고 안전하게 !전문가와 함께 진행 !하루 평균 200% 순이익https://bit.ly/38jCWnA","occurred_at": "January 18, 2020 at 07:20PM"}`
 	//t := &temp{}
 	//

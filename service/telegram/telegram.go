@@ -9,9 +9,6 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-const Token = "1016284278:AAHZh37ZE-D8ZZ08RDlielM3SiBBXTM6KUA"
-const MonitorChatID = "-1001250683697"
-
 var to *MonitorRoom
 
 var initialized = false
@@ -20,7 +17,7 @@ type MonitorRoom struct{}
 type ChatRoom struct{}
 
 func (*MonitorRoom) Recipient() string {
-	return MonitorChatID
+	return config.TelegramChatID
 }
 
 var bot *tb.Bot
@@ -29,7 +26,7 @@ func Init() {
 	log.Println("Initializing telegram bot..")
 	var err error
 	bot, err = tb.NewBot(tb.Settings{
-		Token:  Token,
+		Token:  config.TelegramAccessToken,
 		Poller: &tb.LongPoller{Timeout: 5 * time.Second},
 	})
 	if err != nil {
