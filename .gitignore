@@ -136,3 +136,4 @@ bin/
 .env.*
 .env*
 /sms-sorter
+/main
