@@ -3,8 +3,8 @@ package sms
 import (
 	"context"
 	"crypto/sha512"
-	"encoding/json"
 	"fmt"
+	json "github.com/json-iterator/go"
 	"github.com/mervick/aes-everywhere/go/aes256"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

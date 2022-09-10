@@ -1,8 +1,8 @@
 package mqtt
 
 import (
-	"encoding/json"
 	"fmt"
+	json "github.com/json-iterator/go"
 	"log"
 	"sms-sorter/config"
 	"time"
@@ -99,7 +99,7 @@ func SendStopped(hostname, localIP, pubIP string) {
 }
 
 func SendFailedMessage(status string, at time.Time) {
-	str := &Status{ServerName: config.ServerName, Status: status, Timestamp: at.Unix(), Period: "error",}
+	str := &Status{ServerName: config.ServerName, Status: status, Timestamp: at.Unix(), Period: "error"}
 	payload, err := json.Marshal(str)
 	if err != nil {
 		log.Println("mqtt.SendFailed - SendFailedMessage()", err)

@@ -11,6 +11,7 @@ import (
 	"sms-sorter/model/finefssCategory"
 	"sms-sorter/model/sms"
 	"sms-sorter/model/thecall"
+	"sms-sorter/service/telegram"
 	"sms-sorter/util"
 	"syscall"
 
@@ -24,7 +25,7 @@ var hostname = ""
 
 func init() {
 	c = cron.New()
-	//telegram.Init()
+	telegram.Init()
 	//mqtt.Init()
 	//
 	// Initializing Data...
