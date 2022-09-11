@@ -3,8 +3,8 @@ package mqtt
 import (
 	"fmt"
 	json "github.com/json-iterator/go"
-	"log"
 	"sms-sorter/config"
+	"sms-sorter/util/logger"
 	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"
@@ -25,13 +25,13 @@ var mqttClient mqtt.Client
 var initialized = false
 
 func Init() {
-	log.Println("MQTT Initializing...")
+	logger.L.Info("MQTT Initializing...")
 
 	if config.MqttURL == "" {
-		log.Fatalln("SMS_ADMIN_MQTT_URL missing")
+		logger.L.Fatal("SMS_ADMIN_MQTT_URL missing")
 	}
 	if config.MqttClientID == "" {
-		log.Fatalln("SMS_ADMIN_MQTT_CLIENT_ID missing")
+		logger.L.Fatal("SMS_ADMIN_MQTT_CLIENT_ID missing")
 	}
 
 	options := mqtt.NewClientOptions()
@@ -44,9 +44,9 @@ func Init() {
 	t := mqttClient.Connect()
 	if t.Wait() {
 		if t.Error() != nil {
-			log.Fatalln("Mqtt Error", t.Error())
+			logger.L.Fatal("Mqtt Error", t.Error())
 		} else {
-			log.Println("MQTT Connected")
+			logger.L.Info("MQTT Connected")
 			initialized = true
 		}
 	}
@@ -71,16 +71,16 @@ func SendStatus(status string, period string) {
 	}
 	payload, err := json.Marshal(str)
 	if err != nil {
-		log.Println("mqtt.SendStatus", err)
+		logger.L.Info("mqtt.SendStatus", err)
 		return
 	}
 
 	if !initialized {
-		log.Println("[MQTT/Not-Initialized] payload => ", string(payload))
+		logger.L.Info("[MQTT/Not-Initialized] payload => ", string(payload))
 		return
 	}
 	publish(TopicStatus(), 1, false, payload)
-	log.Println("[MQTT] Sent status.")
+	logger.L.Info("[MQTT] Sent status.")
 }
 
 func SendFailed(location string, err error, at time.Time) {
@@ -102,12 +102,12 @@ func SendFailedMessage(status string, at time.Time) {
 	str := &Status{ServerName: config.ServerName, Status: status, Timestamp: at.Unix(), Period: "error"}
 	payload, err := json.Marshal(str)
 	if err != nil {
-		log.Println("mqtt.SendFailed - SendFailedMessage()", err)
+		logger.L.Info("mqtt.SendFailed - SendFailedMessage()", err)
 		return
 	}
 
 	publish(TopicStatus(), 1, false, payload)
-	log.Println("[MQTT] SendFailedMessage() - Success.")
+	logger.L.Info("[MQTT] SendFailedMessage() - Success.")
 }
 
 func publish(topic string, qos byte, retained bool, payload interface{}) {

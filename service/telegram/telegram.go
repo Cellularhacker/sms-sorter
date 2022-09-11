@@ -2,8 +2,8 @@ package telegram
 
 import (
 	"fmt"
-	"log"
 	"sms-sorter/config"
+	"sms-sorter/util/logger"
 	"time"
 
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -23,14 +23,14 @@ func (*MonitorRoom) Recipient() string {
 var bot *tb.Bot
 
 func Init() {
-	log.Println("Initializing telegram bot..")
+	logger.L.Info("Initializing telegram bot..")
 	var err error
 	bot, err = tb.NewBot(tb.Settings{
 		Token:  config.TelegramAccessToken,
 		Poller: &tb.LongPoller{Timeout: 5 * time.Second},
 	})
 	if err != nil {
-		log.Fatalln(err)
+		logger.L.Fatal(err)
 	}
 
 	to = &MonitorRoom{}
@@ -49,16 +49,16 @@ func SendMessageAt(message string, t time.Time) {
 	}
 
 	msg := fmt.Sprintf("%s\n%s", message, t.Format(time.RFC822))
-	log.Println("  Sending telegram Message...")
+	logger.L.Info("  Sending telegram Message...")
 	_, err := bot.Send(to, msg)
 	if err != nil {
-		log.Println("   Failed to send Monitor", err)
+		logger.L.Info("   Failed to send Monitor", err)
 	}
-	log.Println("  [Telegram] message sent.")
+	logger.L.Info("  [Telegram] message sent.")
 }
 
 func SendStarted(hostname string, localIP string, pubIP string) {
-	log.Println("SendStarted()")
+	logger.L.Info("SendStarted()")
 	msg := fmt.Sprintf("<%s> started successfully\nHostname:%s\nLocal IP:%s\nPublic IP:%s\n", config.ServerName, hostname, localIP, pubIP)
 	SendMessage(msg)
 }

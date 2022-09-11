@@ -3,9 +3,10 @@ package renewSpamDB
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"log"
 	"net/http"
+	"sms-sorter/service/proxy2"
 	"sms-sorter/util"
+	"sms-sorter/util/logger"
 	"strings"
 	"time"
 
@@ -16,7 +17,6 @@ const url = "http://www.thecall.co.kr/bbs/board.php"
 const testURL = "http://ch002.cafe24.com/thecall_whitelist.html"
 
 const (
-
 	articleSelector     = "div.phone-list > form > article"
 	phoneNumberSelector = "h2 > a"
 	subjectSelector     = "p"
@@ -29,7 +29,7 @@ const (
 )
 
 func TheCall() error {
-	log.Printf("[TheCall] Parsing %s\n", paramBoTablePhone)
+	logger.L.Infof("[TheCall] Parsing %s", paramBoTablePhone)
 	i := 1
 	for {
 		fmt.Printf("%d ", i)
@@ -43,8 +43,7 @@ func TheCall() error {
 		i++
 		<-time.NewTicker(3 * time.Second).C
 	}
-	fmt.Println()
-	log.Printf("[TheCall] Parsing %s\n", paramBoTableWhitelist)
+	logger.L.Infof("[TheCall] Parsing %s", paramBoTableWhitelist)
 	i = 1
 	for {
 		fmt.Printf("%d ", i)
@@ -63,15 +62,15 @@ func TheCall() error {
 }
 
 func repeat(boTable string, page int) (bool, error) {
-	url := fmt.Sprintf("%s?%s=%s&%s=%d", url, paramBoTable, boTable, paramPage, page)
-	req, err := http.NewRequest("GET", url, nil)
+	uri := fmt.Sprintf("%s?%s=%s&%s=%d", url, paramBoTable, boTable, paramPage, page)
+	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
 		return false, err
 	}
 
 	req.Header.Add("User-Agent", userAgent)
 
-	client := &http.Client{}
+	client := proxy2.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, err

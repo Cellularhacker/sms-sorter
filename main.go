@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/robfig/cron"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -46,37 +45,6 @@ func init() {
 }
 
 func main() {
-	//err := json.Unmarshal([]byte(res), t)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//at, err := time.Parse("January 2, 2006 at 03:04PM", t.OccurredAtStr)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//loc, _ := time.LoadLocation("Asia/Seoul")
-	//at = at.Add(-9 * time.Hour)
-	//
-	//log.Printf("occurred_at: %v\n", at.In(loc))
-	//
-	//r := regexp.MustCompile("([0-9]{3})-?([0-9]{4})-?([0-9]{4})")
-	////r := regexp.MustCompile("^(01[016789]{1}|02|0[3-9]{1}[0-9]{1})-?[0-9]{3,4}-?[0-9]{4}$")
-	//list := r.FindAllStringSubmatch(t.FromNumber, -1)
-	//
-	//for i, e := range list {
-	//	for j, f := range e {
-	//		log.Printf("[%d:%d] %v\n", i, j, f)
-	//	}
-	//}
-	//
-	//return
-	// Temporary backup.
-	//err := pushover.Backup()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//return
-
 	// Send Startup Message
 	go func() {
 		hostname, _ = os.Hostname()
@@ -101,7 +69,7 @@ func cronJobs() {
 func GetOutboundIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		log.Fatal(err)
+		logger.L.Fatal(err)
 	}
 	defer conn.Close()
 	localAddr := conn.LocalAddr().(*net.UDPAddr)

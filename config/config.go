@@ -1,8 +1,8 @@
 package config
 
 import (
-	"log"
 	"os"
+	"sms-sorter/util/logger"
 )
 
 const (
@@ -32,7 +32,7 @@ var Mode = ModeDevelopment
 func init() {
 	EncryptionSecret = os.Getenv("SMS_ENCRYPT")
 	if EncryptionSecret == "" {
-		log.Fatalln("SMS_ENCRYPT missing")
+		logger.Fatal("SMS_ENCRYPT missing")
 	}
 
 	MqttURL = os.Getenv("SMS_ADMIN_MQTT_URL")
@@ -40,9 +40,9 @@ func init() {
 
 	Mode = os.Getenv("SMS_MODE")
 	if IsProductionMode() {
-		log.Println("Running SMS_ in Production Mode")
+		logger.Info("Running SMS_ in Production Mode")
 	} else {
-		log.Println("Running SMS_ in Development Mode")
+		logger.Info("Running SMS_ in Development Mode")
 	}
 
 	if IsProductionMode() {
