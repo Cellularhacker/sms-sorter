@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sms-sorter/config"
 	"sms-sorter/data"
 	"sms-sorter/model/finefss"
 	"sms-sorter/model/finefssCategory"
@@ -13,6 +14,7 @@ import (
 	"sms-sorter/model/thecall"
 	"sms-sorter/service/telegram"
 	"sms-sorter/util"
+	"sms-sorter/util/logger"
 	"syscall"
 
 	"github.com/chyeh/pubip"
@@ -24,13 +26,12 @@ var pubIP = ""
 var hostname = ""
 
 func init() {
-	c = cron.New()
-	telegram.Init()
-	//mqtt.Init()
-	//
+	logger.Init(config.IsProductionMode())
 	// Initializing Data...
 	data.Init()
-	//
+
+	c = cron.New()
+
 	// Set Collection
 	sms.SetCollection(data.GetSmsDB())
 	thecall.SetCollection(data.GetSmsDB())
@@ -38,18 +39,13 @@ func init() {
 	finefssCategory.SetCollection(data.GetSpamDB())
 	//finefss.SetStore(data.NewFineFssStore())
 	//finefssCategory.SetStore(data.NewFineFssCategoryStore())
+
 	// Service...
+	telegram.Init()
+
 }
 
 func main() {
-	//err := renewSpamDB.TheCall()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//return
-	//res := `{"from_number": "01065146909","contact_name": "Cellularhacker@DEXEOS","text": "[Web발신]정확하고 안전하게 !전문가와 함께 진행 !하루 평균 200% 순이익https://bit.ly/38jCWnA","occurred_at": "January 18, 2020 at 07:20PM"}`
-	//t := &temp{}
-	//
 	//err := json.Unmarshal([]byte(res), t)
 	//if err != nil {
 	//	log.Fatalln(err)
