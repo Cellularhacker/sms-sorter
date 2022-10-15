@@ -1,0 +1,42 @@
+name: Build Test
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    name: Build check - dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go with cache
+        uses: magnetikonline/action-golang-cache@v3
+        with:
+          go-version-file: go.mod
+      - name: Test
+        run: go version && pwd && ls -al
+      - name: Build test
+        env:
+          OUTPUT_FILENAME: ${{ secrets.OUTPUT_FILE_NAME }}
+        run: GOOS=linux GOARCH=amd64 go build -v ./...
+#      - name: if fail
+#        uses: actions/github-script@0.2.0
+#        with:
+#          github-token: ${{github.token}}
+#          script: |
+#            const ref = "${{github.ref}}"
+#            const pull_number = Number(ref.split("/")[2])
+#            await github.pulls.createReview({
+#              ...context.repo,
+#              pull_number,
+#              body:"Failed to build. ",
+#              event: "REQUEST_CHANGES"
+#            })
+#            await github.pulls.update({
+#              ...context.repo,
+#              pull_number,
+#              state: "closed"
+#            })
+#        if: failure()
