@@ -5,8 +5,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log"
 	"sms-sorter/config"
+	"sms-sorter/util/logger"
 	"time"
 )
 
@@ -20,7 +20,7 @@ const (
 var mongoDBClient *mongo.Client
 
 func connectMongoDB() {
-	log.Println("Connecting to LoT Admin Mongo DB...")
+	logger.L.Info("Connecting to LoT Admin Mongo DB...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -29,17 +29,17 @@ func connectMongoDB() {
 	opt.SetReadPreference(readpref.SecondaryPreferred())
 	client, err := mongo.Connect(ctx, opt)
 	if err != nil {
-		log.Fatalln("Failed to connect LoT Admin Mongo DB! =>", err)
+		logger.L.Fatal("Failed to connect LoT Admin Mongo DB! =>", err)
 	}
 	err = client.Ping(context.Background(), readpref.SecondaryPreferred())
 	if err != nil {
-		log.Fatalln("Failed to ping LoT Admin Mongo DB! =>", err)
+		logger.L.Fatal("Failed to ping LoT Admin Mongo DB! =>", err)
 	}
 
 	mongoDBClient = client
 }
 
-//InitMongo initiates our database session
+// InitMongo initiates our database session
 func InitMongo() {
 	connectMongoDB()
 }

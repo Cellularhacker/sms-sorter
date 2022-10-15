@@ -2,9 +2,9 @@ package util
 
 import (
 	"fmt"
-	"log"
 	"sms-sorter/service/mqtt"
 	"sms-sorter/service/telegram"
+	"sms-sorter/util/logger"
 	"sms-sorter/util/uTime"
 	"time"
 )
@@ -15,7 +15,7 @@ func SendFailed(location string, err error) {
 
 	telegram.SendFailedMsg(msg, t)
 	mqtt.SendFailedMessage(msg, t)
-	log.Println(msg, t.Format(time.RFC822))
+	logger.L.Error(msg, " ", t.Format(time.RFC822))
 }
 
 func SendStarted(hostname, localIP, pubIP string) {
