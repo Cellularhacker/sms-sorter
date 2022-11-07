@@ -12,7 +12,7 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tdewolff/minify v2.3.6+incompatible
-	go.mongodb.org/mongo-driver v1.10.3
+	go.mongodb.org/mongo-driver v1.11.0
 	go.uber.org/zap v1.23.0
 	gopkg.in/tucnak/telebot.v2 v2.5.0
 )
