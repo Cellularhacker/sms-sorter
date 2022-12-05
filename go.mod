@@ -13,7 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tdewolff/minify v2.3.6+incompatible
 	go.mongodb.org/mongo-driver v1.10.3
-	go.uber.org/zap v1.23.0
+	go.uber.org/zap v1.24.0
 	gopkg.in/tucnak/telebot.v2 v2.5.0
 )
 
