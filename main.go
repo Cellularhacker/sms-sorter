@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Cellularhacker/logger"
 	"github.com/robfig/cron"
 	"net"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"sms-sorter/model/thecall"
 	"sms-sorter/service/telegram"
 	"sms-sorter/util"
-	"sms-sorter/util/logger"
 	"syscall"
 
 	"github.com/chyeh/pubip"

@@ -2,9 +2,9 @@ package mqtt
 
 import (
 	"fmt"
-	json "github.com/json-iterator/go"
+	"github.com/Cellularhacker/logger"
+	"github.com/goccy/go-json"
 	"sms-sorter/config"
-	"sms-sorter/util/logger"
 	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"

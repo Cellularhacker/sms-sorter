@@ -2,8 +2,8 @@ package telegram
 
 import (
 	"fmt"
+	"github.com/Cellularhacker/logger"
 	"sms-sorter/config"
-	"sms-sorter/util/logger"
 	"time"
 
 	tb "gopkg.in/telebot.v3"
