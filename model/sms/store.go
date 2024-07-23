@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha512"
 	"fmt"
-	json "github.com/json-iterator/go"
+	"github.com/goccy/go-json"
 	"github.com/mervick/aes-everywhere/go/aes256"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -138,7 +138,7 @@ func IsExistHash(hash string) bool {
 	return s > 0
 }
 
-/////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////
 // January 20, 2020 at 01:18AM
 func ParseFromJSONString(jsonStr string) (*Sms, error) {
 	s := New()

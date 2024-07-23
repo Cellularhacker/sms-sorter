@@ -2,11 +2,11 @@ package telegram
 
 import (
 	"fmt"
+	"github.com/Cellularhacker/logger"
 	"sms-sorter/config"
-	"sms-sorter/util/logger"
 	"time"
 
-	tb "gopkg.in/tucnak/telebot.v2"
+	tb "gopkg.in/telebot.v3"
 )
 
 var to *MonitorRoom

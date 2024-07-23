@@ -2,11 +2,11 @@ package renewSpamDB
 
 import (
 	"fmt"
+	"github.com/Cellularhacker/logger"
 	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"sms-sorter/service/proxy2"
 	"sms-sorter/util"
-	"sms-sorter/util/logger"
 	"strings"
 	"time"
 

@@ -10,33 +10,33 @@ jobs:
     name: Build check - dev
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup go with cache
-        uses: magnetikonline/action-golang-cache@v3
+        uses: magnetikonline/action-golang-cache@v5
         with:
           go-version-file: go.mod
+      - name: Extract build target module name.
+        run: echo "BUILD_FILE_NAME=$(head -n1 go.mod | cut -d ' ' -f2)" >> $GITHUB_ENV
       - name: Test
-        run: go version && pwd && ls -al
+        run: go version && pwd && ls -al && echo "${{ env.BUILD_FILE_NAME }}"
       - name: Build test
-        env:
-          OUTPUT_FILENAME: ${{ secrets.OUTPUT_FILE_NAME }}
-        run: GOOS=linux GOARCH=amd64 go build -v ./...
-#      - name: if fail
-#        uses: actions/github-script@0.2.0
-#        with:
-#          github-token: ${{github.token}}
-#          script: |
-#            const ref = "${{github.ref}}"
-#            const pull_number = Number(ref.split("/")[2])
-#            await github.pulls.createReview({
-#              ...context.repo,
-#              pull_number,
-#              body:"Failed to build. ",
-#              event: "REQUEST_CHANGES"
-#            })
-#            await github.pulls.update({
-#              ...context.repo,
-#              pull_number,
-#              state: "closed"
-#            })
-#        if: failure()
+        run: GOOS=linux GOARCH=amd64 go build -v "${{ env.BUILD_FILE_NAME }}"
+      - name: if fail
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const ref = "${{ github.ref }}"
+            const pull_number = Number(ref.split("/")[2])
+            await github.pulls.createReview({
+              ...context.repo,
+              pull_number,
+              body:"Failed to build. ",
+              event: "REQUEST_CHANGES"
+            })
+            await github.pulls.update({
+              ...context.repo,
+              pull_number,
+              state: "open"
+            })
+        if: failure()

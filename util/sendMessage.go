@@ -2,9 +2,9 @@ package util
 
 import (
 	"fmt"
+	"github.com/Cellularhacker/logger"
 	"sms-sorter/service/mqtt"
 	"sms-sorter/service/telegram"
-	"sms-sorter/util/logger"
 	"sms-sorter/util/uTime"
 	"time"
 )

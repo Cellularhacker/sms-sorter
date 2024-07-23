@@ -2,11 +2,11 @@ package data
 
 import (
 	"context"
+	"github.com/Cellularhacker/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"sms-sorter/config"
-	"sms-sorter/util/logger"
 	"time"
 )
 

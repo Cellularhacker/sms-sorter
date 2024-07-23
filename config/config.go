@@ -1,8 +1,8 @@
 package config
 
 import (
+	"github.com/Cellularhacker/logger"
 	"os"
-	"sms-sorter/util/logger"
 )
 
 const (
