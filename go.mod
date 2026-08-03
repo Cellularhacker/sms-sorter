@@ -7,7 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/chyeh/pubip v0.0.0-20170203095919-b7e679cf541c
 	github.com/eclipse/paho.mqtt.golang v1.4.3
-	github.com/goccy/go-json v0.10.3
+	github.com/goccy/go-json v0.10.6
 	github.com/mervick/aes-everywhere/go/aes256 v0.0.0-20240720053737-00cc1efd0979
 	github.com/onsi/ginkgo v1.16.5
 	github.com/robfig/cron v1.2.0
